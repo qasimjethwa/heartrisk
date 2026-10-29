@@ -241,17 +241,50 @@ function renderInsights(base, p) {
       " versus " + fmtPct(p) + " now (" + (top.delta * 100).toFixed(1) + " percentage points). That is a model association, not a guaranteed personal outcome, and it says nothing about how to achieve the change safely.</p>"
     : "<p>No listed scenario moves this model estimate by at least 0.1 percentage points. That does not mean nothing matters — it means this model's inputs, at your current values, are not sensitive to those single-factor changes.</p>";
 }
+function calibSVG(bins) {
+  var W = 320, H = 220, L = 36, B = 26, T = 8, R = 8, iw = W - L - R, ih = H - T - B;
+  function X(v) { return L + v * iw; }
+  function Y(v) { return T + ih - v * ih; }
+  var pts = bins.map(function (b) { return X(b.mean_predicted) + "," + Y(b.observed_rate); }).join(" ");
+  return "<svg viewBox='0 0 " + W + " " + H + "' role='img' aria-label='Calibration curve: mean predicted risk against observed rate per decile bin' style='width:100%;max-width:420px;height:auto;display:block'>" +
+    "<line x1='" + L + "' y1='" + Y(0) + "' x2='" + (W - R) + "' y2='" + Y(0) + "' stroke='#d8cbb2'/>" +
+    "<line x1='" + L + "' y1='" + T + "' x2='" + L + "' y2='" + Y(0) + "' stroke='#d8cbb2'/>" +
+    "<line x1='" + L + "' y1='" + Y(0) + "' x2='" + (W - R) + "' y2='" + T + "' stroke='#9aa0a6' stroke-dasharray='4 4'/>" +
+    "<polyline points='" + pts + "' fill='none' stroke='#b42318' stroke-width='2'/>" +
+    bins.map(function (b) { return "<circle cx='" + X(b.mean_predicted) + "' cy='" + Y(b.observed_rate) + "' r='3.5' fill='#b42318'/>"; }).join("") +
+    "<text x='" + (L + iw / 2) + "' y='" + (H - 4) + "' text-anchor='middle' font-size='10' fill='#6b6259'>Predicted risk</text>" +
+    "<text x='10' y='" + (T + ih / 2) + "' text-anchor='middle' font-size='10' fill='#6b6259' transform='rotate(-90 10 " + (T + ih / 2) + ")'>Observed rate</text>" +
+    "</svg><p class='small'>Dashed line = perfect calibration. Dots = decile bins on the held-out test set (n≈85 each). The top bin is the noisiest; the curve is estimated on one historical cohort, not on an independent population.</p>";
+}
 function renderMetrics() {
-  var m = MODEL.metrics.logistic_regression, r = MODEL.metrics.random_forest;
-  function row(name, x) {
-    return "<tr><td>" + name + "</td><td>" + x.accuracy + "</td><td>" + x.roc_auc + "</td><td>" + x["f1_at_0.5"] + "</td><td>" + x.average_precision + "</td><td>" + x.brier_score + "</td><td>" + x.cv_roc_auc_mean + " ± " + x.cv_roc_auc_std + "</td></tr>";
+  var M = MODEL.metrics, shipped = MODEL.shipped_test_metrics;
+  function row(name, x, cv) {
+    return "<tr><td>" + name + "</td><td>" + x.accuracy + "</td><td>" + x.roc_auc + "</td><td>" + x.pr_auc_average_precision + "</td><td>" + x.precision + "</td><td>" + x.recall_sensitivity + "</td><td>" + x.specificity + "</td><td>" + x["f1_at_0.5"] + "</td><td>" + x.brier_score + "</td><td>" + x.log_loss + "</td><td>" + x.calibration_intercept + " / " + x.calibration_slope + "</td><td>" + (cv || "—") + "</td></tr>";
+  }
+  function candRow(name, key) {
+    return row(name, M[key].test.sigmoid, M[key].cv_roc_auc_mean + " ± " + M[key].cv_roc_auc_std);
   }
   $("metrics").innerHTML =
-    "<table><thead><tr><th>Model (test set, n=" + m.n_test + ")</th><th>Accuracy</th><th>ROC-AUC</th><th>F1 @ 0.5</th><th>Avg precision</th><th>Brier</th><th>CV ROC-AUC</th></tr></thead><tbody>" +
-    row("Logistic regression — shipped", m) + row("Random forest — compared", r) + "</tbody></table>" +
-    "<p class='small'>Confusion matrix, logistic regression (rows actual, columns predicted at 0.5): [[" + m.confusion_matrix[0].join(", ") + "], [" + m.confusion_matrix[1].join(", ") + "]]. " +
-    "Only " + m.confusion_matrix[1][1] + " of " + (m.confusion_matrix[1][0] + m.confusion_matrix[1][1]) + " test cases with the outcome were predicted positive at 0.5 — hence the low F1. " +
-    "Calibration bins (mean predicted → fraction positive): " + MODEL.calibration_bins.map(function (b) { return b.mean_predicted + " → " + b.fraction_positive; }).join("; ") + ".</p>" +
+    "<div class='disclaimer' role='note'><strong>Not enough evidence for clinical decisions.</strong> " +
+    "These numbers come from one held-out test set on one historical cohort, with calibration fitted on one calibration split. " +
+    "Stronger calibration evidence and evaluation on an independent, relevant population are still required before any individual risk estimate here could be trusted for a clinical decision. " +
+    "This product is educational only.</div>" +
+    "<p><strong>Shipped model (sigmoid-calibrated):</strong> regularized logistic regression, C and class_weight tuned by CV on train only, " +
+    "calibration fitted on the calibration split only. Split: " + MODEL.split.design + " (train " + MODEL.split.train_rows + ", calibration " + MODEL.split.calibration_rows + ", test " + MODEL.split.test_rows + ").</p>" +
+    "<table><thead><tr><th>Model (test, sigmoid-calibrated)</th><th>Accuracy</th><th>ROC-AUC</th><th>PR-AUC</th><th>Precision</th><th>Recall</th><th>Specificity</th><th>F1 @ 0.5</th><th>Brier</th><th>Log loss</th><th>Cal. intercept / slope</th><th>CV ROC-AUC</th></tr></thead><tbody>" +
+    candRow("Logistic regression, regularized — shipped", "lr_regularized") +
+    candRow("Random forest — compared", "random_forest") +
+    candRow("HistGradientBoosting — compared", "hist_gb") +
+    candRow("Logistic regression, unregularized baseline", "lr_unregularized_baseline") + "</tbody></table>" +
+    "<p class='small'>Shipped confusion matrix (rows actual, columns predicted at 0.5): [[" + shipped.confusion_matrix[0].join(", ") + "], [" + shipped.confusion_matrix[1].join(", ") + "]]. " +
+    "Only " + shipped.confusion_matrix[1][1] + " of " + (shipped.confusion_matrix[1][0] + shipped.confusion_matrix[1][1]) + " test cases with the outcome were predicted positive at 0.5 — hence the low F1 and recall. " +
+    "That is why this UI shows probabilities, never a bare yes/no verdict: a 0.5 cut on a 15% prevalence outcome is a poor summary.</p>" +
+    "<p class='small'><strong>Why calibration matters:</strong> if 100 people are given a predicted risk of 20%, a calibrated model means about 20 of them should experience the outcome over 10 years, on average, in an appropriate population. It will not be exactly 20 every time; what matters is agreement across the whole range of risks. " +
+    "The tuned model's raw probabilities were badly miscalibrated (uncalibrated test Brier " + M.lr_regularized.test.uncalibrated.brier_score + ", intercept " + M.lr_regularized.test.uncalibrated.calibration_intercept + ") because class_weight='balanced' inflates them. " +
+    "Sigmoid calibration fitted on the calibration split only restores them (test Brier " + shipped.brier_score + ", intercept " + shipped.calibration_intercept + ", slope " + shipped.calibration_slope + "). " +
+    "Isotonic calibration was tied on cross-fitted Brier but worse on log loss and unstable, so it was not shipped. Full tables: EVALUATION.md.</p>" +
+    "<h3 style='margin-top:18px'>Figure — calibration curve (shipped model, test set)</h3>" + calibSVG(MODEL.calibration_bins) +
+    "<p class='small'>Calibration bins (mean predicted → observed rate, n): " + MODEL.calibration_bins.map(function (b) { return b.mean_predicted + " → " + b.observed_rate + " (n=" + b.n + ")"; }).join("; ") + ".</p>" +
     "<p class='small'><strong>Selection:</strong> " + MODEL.selection_reason + "</p>";
   $("glossary").innerHTML = MODEL.features.map(function (f) {
     var r = MODEL.dataset.training_ranges[f];

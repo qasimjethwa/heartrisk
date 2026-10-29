@@ -1,10 +1,12 @@
 /* HeartRisk model core — pure, dependency-free, no DOM.
    Mirrors src/train.py exactly: median imputation (train medians),
-   standard scaling (train mean/scale), logistic regression, sigmoid.
+   standard scaling (train mean/scale), logistic regression, sigmoid,
+   then sigmoid (Platt) calibration fitted on the calibration split only:
+   p_cal = sigmoid(a + b * logit(p_raw)), with a/b from model.calibration.
    Used by app.js in the browser and by src/parity.js under Node, so a
    parity failure means the browser really diverges from Python. */
 "use strict";
-function hrPredict(model, input) {
+function hrRaw(model, input) {
   var z = model.intercept;
   model.features.forEach(function (f, i) {
     var v = input[f];
@@ -16,11 +18,21 @@ function hrPredict(model, input) {
   });
   return 1 / (1 + Math.exp(-z));
 }
+function hrPredict(model, input) {
+  var p = hrRaw(model, input);
+  var cal = model.calibration;
+  if (cal && cal.method === "sigmoid_platt_on_logit") {
+    var pc = Math.min(0.999999, Math.max(0.000001, p));
+    var logit = Math.log(pc / (1 - pc));
+    return 1 / (1 + Math.exp(-(cal.a + cal.b * logit)));
+  }
+  return p;
+}
 function hrBand(model, p) {
   if (p < model.display_bands.low_max) return "low";
   if (p <= model.display_bands.moderate_max) return "moderate";
   return "high";
 }
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { hrPredict: hrPredict, hrBand: hrBand };
+  module.exports = { hrPredict: hrPredict, hrRaw: hrRaw, hrBand: hrBand };
 }

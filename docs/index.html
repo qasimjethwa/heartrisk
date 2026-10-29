@@ -164,6 +164,7 @@ This tool shows what a trained research model estimates from the numbers you ent
 <section class="section" id="science" aria-labelledby="science-h">
 <p class="kicker">Science &amp; model</p>
 <h2 id="science-h">What the model is — and what it is not</h2>
+<div class="disclaimer" role="note"><strong>Not enough evidence for clinical decisions.</strong> There is not yet enough evidence to trust these individual risk estimates for clinical decisions. That would require stronger calibration evidence and evaluation on an independent, relevant population — neither of which this project has. Everything here is educational only.</div>
 <p id="metricsIntro">Metrics below are loaded from the trained model file, so the page can never drift from the training run.</p>
 <div id="metrics"></div>
 <h3 style="margin-top:22px">Feature glossary</h3>
@@ -175,7 +176,8 @@ This tool shows what a trained research model estimates from the numbers you ent
 <li><strong>Missing data.</strong> Glucose was missing in 388 of 4,240 rows; other fields had smaller gaps. Medians were imputed from the training split only, never from the test split.</li>
 <li><strong>No causal claim.</strong> A scenario that lowers an input number changes the model's output. It does not prove your personal risk would fall by that amount, or that any intervention is safe or appropriate for you.</li>
 <li><strong>Binary sex coding, no former-smoker category, no family history beyond prevalent stroke/hypertension</strong> — all inherited from the source dataset.</li>
-<li><strong>Not validated clinically.</strong> No clinical validation, regulatory review or prospective testing was done for this project.</li>
+<li><strong>Not validated clinically, and not validated on an independent population.</strong> No clinical validation, regulatory review, prospective testing or external-population evaluation was done for this project. Calibration was fitted on one calibration split and checked on one held-out test set from the same historical cohort.</li>
+<li><strong>Calibration is estimated, not proven.</strong> The calibration curve is based on 848 test cases; high-risk bins are noisy, and agreement on this cohort does not guarantee agreement for other populations, ages, eras or care settings.</li>
 </ul>
 <p>Full method, calibration data and provenance: <a href="methodology.html">Methodology</a>. Data provenance, metrics and Python↔browser parity reports live in the repository alongside the demo (<code>DATA_PROVENANCE.md</code>, <code>METRICS.md</code>, <code>PARITY.md</code>).</p>
 </section>
@@ -184,7 +186,7 @@ This tool shows what a trained research model estimates from the numbers you ent
 <h2 id="faqs-h">FAQs</h2>
 <h3>Is this a diagnosis?</h3><p>No. It is an educational demonstration of a machine-learning model. Only a clinician, with your full history and examinations, can assess your health.</p>
 <h3>Is my health data stored or sent anywhere?</h3><p>No. Inputs live only in this page's memory while it is open. There is no account, no browser storage, no analytics and no external request — the page loads only its own stylesheet, script and model file from this site.</p>
-<h3>Why do two models appear in the metrics?</h3><p>Logistic regression and random forest were both trained and compared honestly. The model shipped in the browser is the one that balanced calibrated performance, faithful browser export and explainability — see Methodology for the choice and its reason.</p>
+<h3>Why do four models appear in the metrics?</h3><p>Regularized logistic regression, random forest, HistGradientBoosting and an unregularized logistic baseline were all trained on the same splits and compared on the same metrics. The model shipped in the browser is the one that balanced CV ranking, calibrated performance, faithful browser export and explainability — see Methodology and EVALUATION.md for the choice and its reason.</p>
 <h3>Can I trust a scenario that says risk falls by, say, 6 points?</h3><p>Only as a model output. It is the model's estimate if that one input were different and everything else stayed the same. Real life does not hold everything else constant, and the model may be wrong for you.</p>
 </section>
 </main>
