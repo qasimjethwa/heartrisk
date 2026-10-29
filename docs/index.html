@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HeartRisk — Your future isn't one fixed number</title>
+<meta name="description" content="An educational, privacy-first 10-year heart-disease risk what-if simulator built on a real, trained machine-learning model. Not a diagnosis.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#simulator">Skip to simulator</a>
+<header class="site"><div class="wrap">
+<a class="brand" href="index.html"><i>♥</i> HeartRisk</a>
+<nav class="main" aria-label="Main">
+<a href="#simulator">Simulator</a><a href="#whatif">What-if</a><a href="#science">Science</a><a href="methodology.html">Methodology</a><a href="#faqs">FAQs</a>
+</nav></div></header>
+<main class="wrap">
+<div class="disclaimer" role="note"><strong>Educational only — not a diagnosis, not medical advice.</strong>
+This tool shows what a trained research model estimates from the numbers you enter. It does not know you, it is not clinically validated for personal use, and it must not be used to decide treatment. For personal decisions, talk to a clinician. Nothing you enter is stored, sent anywhere, or tracked.</div>
+
+<section class="hero" aria-labelledby="hero-h">
+<p class="kicker">An editorial data product · A real machine-learning model · No data stored</p>
+<h1 id="hero-h">Your future<br>isn't one<br><em>fixed number.</em></h1>
+<p class="lede">Explore how different health factors can change a 10-year risk estimate for heart disease — using a model actually trained on public Framingham-style data, with its methods, metrics and limits shown in the open.</p>
+<div class="heartbeat" aria-hidden="true"><svg viewBox="0 0 600 60" preserveAspectRatio="none" role="presentation">
+<path class="ecg-base" d="M0 30 H110 L125 30 L138 22 L150 38 L162 8 L176 52 L188 30 H300 L315 30 L328 22 L340 38 L352 8 L366 52 L378 30 H600"/>
+<path class="ecg-anim" d="M0 30 H110 L125 30 L138 22 L150 38 L162 8 L176 52 L188 30 H300 L315 30 L328 22 L340 38 L352 8 L366 52 L378 30 H600"/>
+</svg></div>
+<div class="btnrow">
+<a class="btn" href="#simulator" style="text-decoration:none;display:inline-block">Build My Profile →</a>
+<button class="btn ghost" id="heroSample" type="button">Try a Sample Profile</button>
+</div>
+<div class="trust" aria-label="At a glance">
+<div><b>14</b>Health factors</div><div><b>Real ML</b>Not hardcoded</div>
+<div><b>Private</b>No data stored</div><div><b>Educational</b>Not a diagnosis</div>
+<div><b>Open methods</b>Metrics &amp; limits published</div>
+</div>
+</section>
+
+<div class="grid" id="simulator">
+<!-- INPUTS : stepped form from the mockup -->
+<section class="card" aria-labelledby="inputs-h">
+<p class="kicker">HeartRisk / Your profile</p>
+<h2 id="inputs-h">Let's start with the basics</h2>
+<p class="small">Your information helps estimate a 10-year risk using a machine-learning model. Change anything — the result, the graphs and the scenarios update live, in your browser only.</p>
+<nav class="steps" aria-label="Form steps">
+<a href="#step-basics">01 Basics</a><a href="#step-vitals">02 Vitals</a><a href="#step-additional">03 Additional</a><a href="#step-review">04 Review</a>
+</nav>
+
+<fieldset id="step-basics"><legend>01 · Basics</legend>
+<div class="field"><label id="age-l" for="age">Age (years)</label>
+<input type="range" id="age" min="32" max="70" value="52" aria-labelledby="age-l"><div class="row"><span>32</span><strong id="age-v">52</strong><span>70</span></div></div>
+<div class="field"><span class="field" style="font-weight:600;font-size:14px">Sex</span>
+<div class="seg" role="group" aria-label="Sex">
+<button type="button" data-field="male" data-value="1" aria-pressed="true">Male</button>
+<button type="button" data-field="male" data-value="0" aria-pressed="false">Female</button></div>
+<p class="tiny">Dataset field is <code>male</code> (1 = male, 0 = female). The model was trained on that binary coding; it is a limitation of the source data, not a statement about identity.</p></div>
+<div class="field"><span style="font-weight:600;font-size:14px">Smoking status</span>
+<div class="seg" role="group" aria-label="Smoking status">
+<button type="button" data-field="smoking" data-value="never" aria-pressed="false">Non-smoker</button>
+<button type="button" data-field="smoking" data-value="former" aria-pressed="false">Former</button>
+<button type="button" data-field="smoking" data-value="current" aria-pressed="true">Current</button></div>
+<p class="tiny">The source data only records current smoking. “Former” is modelled as not currently smoking — the model cannot tell a former smoker from someone who never smoked. See Limitations.</p></div>
+<div class="field"><label id="cigs-l" for="cigs">Cigarettes per day</label>
+<input type="range" id="cigs" min="0" max="60" value="20" aria-labelledby="cigs-l"><div class="row"><span>0</span><strong id="cigs-v">20</strong><span>60</span></div>
+<p class="tiny" id="cigs-note">Only counts when smoking status is Current; otherwise the model uses 0.</p></div>
+</fieldset>
+
+<fieldset id="step-vitals"><legend>02 · Vitals</legend>
+<div class="field"><label id="sys-l" for="sys">Systolic blood pressure (mmHg)</label>
+<input type="range" id="sys" min="80" max="220" value="138" aria-labelledby="sys-l"><div class="row"><span>80</span><strong id="sys-v">138</strong><span>220</span></div></div>
+<div class="field"><label id="dia-l" for="dia">Diastolic blood pressure (mmHg)</label>
+<input type="range" id="dia" min="40" max="140" value="85" aria-labelledby="dia-l"><div class="row"><span>40</span><strong id="dia-v">85</strong><span>140</span></div></div>
+<div class="field"><label id="chol-l" for="chol">Total cholesterol (mg/dL)</label>
+<input type="range" id="chol" min="100" max="400" value="240" aria-labelledby="chol-l"><div class="row"><span>100</span><strong id="chol-v">240</strong><span>400</span></div></div>
+<div class="field"><label id="hr-l" for="hr">Resting heart rate (bpm)</label>
+<input type="range" id="hr" min="40" max="140" value="75" aria-labelledby="hr-l"><div class="row"><span>40</span><strong id="hr-v">75</strong><span>140</span></div></div>
+</fieldset>
+
+<fieldset id="step-additional"><legend>03 · Additional</legend>
+<div class="field"><label id="bmi-l" for="bmi">Body mass index (BMI)</label>
+<input type="range" id="bmi" min="15" max="50" step="0.1" value="27.5" aria-labelledby="bmi-l"><div class="row"><span>15</span><strong id="bmi-v">27.5</strong><span>50</span></div></div>
+<div class="field"><label id="glu-l" for="glu">Blood glucose (mg/dL)</label>
+<input type="range" id="glu" min="40" max="300" value="85" aria-labelledby="glu-l"><div class="row"><span>40</span><strong id="glu-v">85</strong><span>300</span></div></div>
+<div class="check"><input type="checkbox" id="bpmeds"><label for="bpmeds">On blood-pressure medication</label></div>
+<div class="check"><input type="checkbox" id="stroke"><label for="stroke">Prevalent stroke (history recorded in the source data)</label></div>
+<div class="check"><input type="checkbox" id="hyp"><label for="hyp">Prevalent hypertension</label></div>
+<div class="check"><input type="checkbox" id="diabetes"><label for="diabetes">Diabetes</label></div>
+<p class="tiny">Diabetes, age, sex and history are context for your estimate. They are <strong>not</strong> what-if toggles: the simulator never offers “switch diabetes off”, because a condition cannot simply be removed.</p>
+</fieldset>
+
+<fieldset id="step-review"><legend>04 · Review</legend>
+<div class="field"><span style="font-weight:600;font-size:14px">Try a sample profile</span>
+<p class="tiny">Illustrative profiles only — not real people. Loading one replaces your inputs.</p>
+<div class="profiles">
+<button class="btn ghost" type="button" data-profile="a">Profile A · 52, smoker</button>
+<button class="btn ghost" type="button" data-profile="b">Profile B · 48, non-smoker</button>
+<button class="btn ghost" type="button" data-profile="c">Profile C · 61, higher-risk context</button>
+</div></div>
+<p id="warnings" class="warn" aria-live="polite"></p>
+<div class="btnrow"><button class="btn ghost" id="resetBtn" type="button">Reset to sample A</button></div>
+<p class="tiny">Out-of-range or extreme values are clamped to the slider range and flagged above. Values far outside the training data (age 32–70, cholesterol 107–696 mg/dL, systolic 83–295 mmHg in the source) are extrapolations — treat those estimates with extra caution.</p>
+</fieldset>
+</section>
+
+<!-- RESULTS : dark-card structure, in light editorial palette -->
+<section class="card results" aria-labelledby="results-h">
+<div class="eyebrow"><span>HeartRisk / Your results</span><span>Fig. 1–2</span></div>
+<h2 id="results-h" class="tiny" style="margin-top:14px">Your estimated 10-year risk</h2>
+<div aria-live="polite">
+<div class="risk-big" id="riskBig">—</div>
+<p><span class="band mod" id="riskBand">—</span></p>
+<p id="riskPlain">—</p>
+</div>
+<div class="bandbar" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="bandlabels"><span>Low &lt; 5%</span><span>Moderate 5–20%</span><span>High &gt; 20%</span></div>
+<p class="tiny">Bands are display bands chosen for this demo. They are <strong>not clinical thresholds</strong>.</p>
+
+<figure>
+<div id="ageChart" role="img" aria-label="Risk over age chart"></div>
+<figcaption><strong>Figure 1 — Risk over age (the X-factor).</strong> Your risk as age varies, with every other input held at your current values (red). The grey curve is the same profile with smoking removed (current smoker = no, cigarettes = 0); if you are already a non-smoker the curves overlap. Age is not changeable — this curve shows how the model associates age with risk, not a future you can choose.</figcaption>
+</figure>
+
+<figure>
+<div class="field"><label for="factorSelect">Explore a change — chart factor</label>
+<select id="factorSelect">
+<option value="cigs">Cigarettes per day</option><option value="sys">Systolic BP</option>
+<option value="chol">Total cholesterol</option><option value="bmi">BMI</option>
+<option value="glu">Glucose</option><option value="hr">Heart rate</option>
+</select></div>
+<div id="factorChart" role="img" aria-label="Risk versus selected factor chart"></div>
+<figcaption><strong>Figure 2 — Risk versus one factor.</strong> The same model, varying only the selected factor. The dot is your current value. Click or tap on the curve to set that factor to the clicked value (keyboard: use the sliders above). A falling curve is a model association, not a promise that changing the factor will cause that exact fall.</figcaption>
+</figure>
+
+<h3 style="margin-top:24px">Top factors driving your risk</h3>
+<p class="tiny">Each bar is the model's estimate with that one factor replaced by a low-risk reference value (training median, or non-smoker for smoking), all else held constant. Positive bars push your estimate up relative to that reference.</p>
+<div id="factors"></div>
+<div class="note"><strong>Association, not causation.</strong> These are patterns the model learned from historical data. They do not prove that changing one factor alone will change your personal outcome by that amount.</div>
+</section>
+</div><!-- /grid -->
+
+<section class="section" id="whatif" aria-labelledby="whatif-h">
+<p class="kicker">What-if simulator</p>
+<h2 id="whatif-h">Change one factor at a time and see how the model responds</h2>
+<p>Every scenario below is recomputed through the exported model — no scenario result is hardcoded. Scenarios are ranked by modelled change, largest fall first.</p>
+<div id="scenarios"></div>
+<div class="note"><strong>What scenarios never do:</strong> remove diabetes, age, sex or history. Those are fixed context. Scenarios that lower blood pressure or cholesterol are modelled as “what if this number were lower”, not as medical instructions to achieve it in a particular way.</div>
+<h3>Compare scenarios — up to 3</h3>
+<p class="tiny">Pin a scenario to compare it side by side with your baseline. Pinned scenarios live only in this page's memory and disappear when you leave.</p>
+<div class="pins" id="pins"></div>
+</section>
+
+<section class="section" aria-labelledby="insights-h">
+<h2 id="insights-h">Key insights &amp; next steps</h2>
+<div id="insights"></div>
+<ul>
+<li>Create a personalised action plan — with a clinician, not from this demo alone.</li>
+<li>Learn practical ways to quit smoking, if applicable, from a clinician or a recognised cessation service.</li>
+<li>Understand healthy blood-pressure and cholesterol ranges — ask a clinician what they mean for you.</li>
+<li>Track different scenarios here, then discuss the ones that matter with a healthcare professional.</li>
+</ul>
+</section>
+
+<section class="section" id="science" aria-labelledby="science-h">
+<p class="kicker">Science &amp; model</p>
+<h2 id="science-h">What the model is — and what it is not</h2>
+<p id="metricsIntro">Metrics below are loaded from the trained model file, so the page can never drift from the training run.</p>
+<div id="metrics"></div>
+<h3 style="margin-top:22px">Feature glossary</h3>
+<table><thead><tr><th>Feature</th><th>What it means</th><th>Training range / note</th></tr></thead><tbody id="glossary"></tbody></table>
+<h3 style="margin-top:22px">Limitations — read before trusting any number here</h3>
+<ul>
+<li><strong>Old, narrow cohort.</strong> The Framingham-style data come from a mid-20th-century US town cohort (ages 32–70). It does not represent today's global population, and performance on other populations is untested here.</li>
+<li><strong>Imbalanced outcome.</strong> Only about 15% of training rows developed CHD within 10 years. Accuracy alone is misleading; ROC-AUC, F1 and the confusion matrix matter more.</li>
+<li><strong>Missing data.</strong> Glucose was missing in 388 of 4,240 rows; other fields had smaller gaps. Medians were imputed from the training split only, never from the test split.</li>
+<li><strong>No causal claim.</strong> A scenario that lowers an input number changes the model's output. It does not prove your personal risk would fall by that amount, or that any intervention is safe or appropriate for you.</li>
+<li><strong>Binary sex coding, no former-smoker category, no family history beyond prevalent stroke/hypertension</strong> — all inherited from the source dataset.</li>
+<li><strong>Not validated clinically.</strong> No clinical validation, regulatory review or prospective testing was done for this project.</li>
+</ul>
+<p>Full method, calibration data and provenance: <a href="methodology.html">Methodology</a>. Data provenance, metrics and Python↔browser parity reports live in the repository alongside the demo (<code>DATA_PROVENANCE.md</code>, <code>METRICS.md</code>, <code>PARITY.md</code>).</p>
+</section>
+
+<section class="section" id="faqs" aria-labelledby="faqs-h">
+<h2 id="faqs-h">FAQs</h2>
+<h3>Is this a diagnosis?</h3><p>No. It is an educational demonstration of a machine-learning model. Only a clinician, with your full history and examinations, can assess your health.</p>
+<h3>Is my health data stored or sent anywhere?</h3><p>No. Inputs live only in this page's memory while it is open. There is no account, no browser storage, no analytics and no external request — the page loads only its own stylesheet, script and model file from this site.</p>
+<h3>Why do two models appear in the metrics?</h3><p>Logistic regression and random forest were both trained and compared honestly. The model shipped in the browser is the one that balanced calibrated performance, faithful browser export and explainability — see Methodology for the choice and its reason.</p>
+<h3>Can I trust a scenario that says risk falls by, say, 6 points?</h3><p>Only as a model output. It is the model's estimate if that one input were different and everything else stayed the same. Real life does not hold everything else constant, and the model may be wrong for you.</p>
+</section>
+</main>
+<footer><div class="wrap">
+<p><strong>HeartRisk — educational only.</strong> Not a diagnosis, not medical advice, not a substitute for professional care. If you have chest pain, breathlessness or other concerning symptoms, seek urgent medical help.</p>
+<p>Built from a public Framingham-style dataset. Model, metrics and methods are published alongside the demo so the numbers can be checked, not just believed.</p>
+</div></footer>
+<script src="app.js"></script>
+</body>
+</html>

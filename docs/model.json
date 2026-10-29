@@ -1,0 +1,296 @@
+{
+  "model": "logistic_regression",
+  "features": [
+    "male",
+    "age",
+    "currentSmoker",
+    "cigsPerDay",
+    "BPMeds",
+    "prevalentStroke",
+    "prevalentHyp",
+    "diabetes",
+    "totChol",
+    "sysBP",
+    "diaBP",
+    "BMI",
+    "heartRate",
+    "glucose"
+  ],
+  "labels": {
+    "male": "Sex (male = 1)",
+    "age": "Age (years)",
+    "currentSmoker": "Current smoker",
+    "cigsPerDay": "Cigarettes per day",
+    "BPMeds": "On BP medication",
+    "prevalentStroke": "Prevalent stroke",
+    "prevalentHyp": "Prevalent hypertension",
+    "diabetes": "Diabetes",
+    "totChol": "Total cholesterol (mg/dL)",
+    "sysBP": "Systolic BP (mmHg)",
+    "diaBP": "Diastolic BP (mmHg)",
+    "BMI": "Body mass index",
+    "heartRate": "Heart rate (bpm)",
+    "glucose": "Glucose (mg/dL)"
+  },
+  "reference": {
+    "male": 0,
+    "age": 49.0,
+    "currentSmoker": 0,
+    "cigsPerDay": 0.0,
+    "BPMeds": 0,
+    "prevalentStroke": 0,
+    "prevalentHyp": 0,
+    "diabetes": 0,
+    "totChol": 234.0,
+    "sysBP": 128.0,
+    "diaBP": 82.0,
+    "BMI": 25.38,
+    "heartRate": 75.0,
+    "glucose": 78.0
+  },
+  "medians": {
+    "male": 0.0,
+    "age": 49.0,
+    "currentSmoker": 0.0,
+    "cigsPerDay": 0.0,
+    "BPMeds": 0.0,
+    "prevalentStroke": 0.0,
+    "prevalentHyp": 0.0,
+    "diabetes": 0.0,
+    "totChol": 234.0,
+    "sysBP": 128.0,
+    "diaBP": 82.0,
+    "BMI": 25.38,
+    "heartRate": 75.0,
+    "glucose": 78.0
+  },
+  "scaler_mean": [
+    0.42865566037735847,
+    49.66391509433962,
+    0.49204009433962265,
+    8.959021226415095,
+    0.02830188679245283,
+    0.006485849056603774,
+    0.310436320754717,
+    0.025943396226415096,
+    236.67010613207546,
+    132.43985849056602,
+    82.8841391509434,
+    25.82453419811321,
+    75.89121462264151,
+    81.58844339622641
+  ],
+  "scaler_scale": [
+    0.4948838098016636,
+    8.571715760985699,
+    0.49993663588686715,
+    11.918123090666015,
+    0.16583392293629196,
+    0.0802731762086111,
+    0.46267225063860423,
+    0.15896646318847987,
+    43.953501939797185,
+    22.032912045109295,
+    11.892166919728076,
+    4.115372293105302,
+    12.007206687643308,
+    22.955488274410705
+  ],
+  "coefficients": [
+    0.21940341045844394,
+    0.5760365908737397,
+    -0.002253424708921533,
+    0.27033481431867457,
+    0.06652621899147684,
+    0.09422180021173697,
+    0.07028508788883381,
+    0.021947750663028592,
+    0.10621973121788689,
+    0.30150465248881636,
+    0.021339460222998485,
+    0.005311833617729477,
+    -0.03250027849507203,
+    0.16515578311719337
+  ],
+  "intercept": -1.9972819884122164,
+  "metrics": {
+    "logistic_regression": {
+      "accuracy": 0.8443,
+      "roc_auc": 0.7021,
+      "f1_at_0.5": 0.0959,
+      "average_precision": 0.2989,
+      "brier_score": 0.1213,
+      "confusion_matrix": [
+        [
+          709,
+          10
+        ],
+        [
+          122,
+          7
+        ]
+      ],
+      "n_test": 848,
+      "cv_roc_auc_mean": 0.732,
+      "cv_roc_auc_std": 0.0307,
+      "cv_roc_auc_folds": [
+        0.7027,
+        0.697,
+        0.7438,
+        0.7819,
+        0.7347
+      ]
+    },
+    "random_forest": {
+      "accuracy": 0.8443,
+      "roc_auc": 0.6458,
+      "f1_at_0.5": 0.0704,
+      "average_precision": 0.265,
+      "brier_score": 0.1264,
+      "confusion_matrix": [
+        [
+          711,
+          8
+        ],
+        [
+          124,
+          5
+        ]
+      ],
+      "n_test": 848,
+      "cv_roc_auc_mean": 0.7194,
+      "cv_roc_auc_std": 0.0293,
+      "cv_roc_auc_folds": [
+        0.6805,
+        0.6908,
+        0.7283,
+        0.7581,
+        0.739
+      ]
+    }
+  },
+  "calibration_bins": [
+    {
+      "mean_predicted": 0.0589,
+      "fraction_positive": 0.0672
+    },
+    {
+      "mean_predicted": 0.1437,
+      "fraction_positive": 0.1765
+    },
+    {
+      "mean_predicted": 0.2453,
+      "fraction_positive": 0.2264
+    },
+    {
+      "mean_predicted": 0.3419,
+      "fraction_positive": 0.3279
+    },
+    {
+      "mean_predicted": 0.4451,
+      "fraction_positive": 0.3182
+    },
+    {
+      "mean_predicted": 0.5538,
+      "fraction_positive": 0.2727
+    },
+    {
+      "mean_predicted": 0.6361,
+      "fraction_positive": 0.6
+    },
+    {
+      "mean_predicted": 0.7773,
+      "fraction_positive": 1.0
+    }
+  ],
+  "selection_reason": "Logistic regression had the higher test ROC-AUC and CV ROC-AUC, exports exactly as coefficients + scaler (faithful browser parity), and is directly explainable. Random forest was lower on test AUC and would export as hundreds of trees. Sigmoid calibration improved Brier by only ~0.0004 in prototyping, so it was not shipped; the calibration curve is published instead.",
+  "dataset": {
+    "rows": 4240,
+    "train_rows": 3392,
+    "test_rows": 848,
+    "prevalence_overall": 0.1519,
+    "prevalence_train": 0.1518,
+    "prevalence_test": 0.1521,
+    "missing_per_feature": {
+      "male": 0,
+      "age": 0,
+      "currentSmoker": 0,
+      "cigsPerDay": 29,
+      "BPMeds": 53,
+      "prevalentStroke": 0,
+      "prevalentHyp": 0,
+      "diabetes": 0,
+      "totChol": 50,
+      "sysBP": 0,
+      "diaBP": 0,
+      "BMI": 19,
+      "heartRate": 1,
+      "glucose": 388
+    },
+    "training_ranges": {
+      "male": [
+        0.0,
+        1.0
+      ],
+      "age": [
+        32.0,
+        70.0
+      ],
+      "currentSmoker": [
+        0.0,
+        1.0
+      ],
+      "cigsPerDay": [
+        0.0,
+        70.0
+      ],
+      "BPMeds": [
+        0.0,
+        1.0
+      ],
+      "prevalentStroke": [
+        0.0,
+        1.0
+      ],
+      "prevalentHyp": [
+        0.0,
+        1.0
+      ],
+      "diabetes": [
+        0.0,
+        1.0
+      ],
+      "totChol": [
+        107.0,
+        696.0
+      ],
+      "sysBP": [
+        83.5,
+        295.0
+      ],
+      "diaBP": [
+        48.0,
+        142.5
+      ],
+      "BMI": [
+        15.54,
+        56.8
+      ],
+      "heartRate": [
+        44.0,
+        143.0
+      ],
+      "glucose": [
+        40.0,
+        394.0
+      ]
+    },
+    "dropped_feature": "education (not a health input; excluded deliberately)",
+    "source_file": "data/framingham.csv"
+  },
+  "display_bands": {
+    "low_max": 0.05,
+    "moderate_max": 0.2,
+    "note": "Display bands only, not clinical thresholds."
+  }
+}

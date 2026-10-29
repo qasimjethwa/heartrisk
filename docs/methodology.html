@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HeartRisk — Methodology</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site"><div class="wrap">
+<a class="brand" href="index.html"><i>♥</i> HeartRisk</a>
+<nav class="main" aria-label="Main"><a href="index.html#simulator">Simulator</a><a href="index.html#whatif">What-if</a><a href="index.html#science">Science</a><a href="methodology.html">Methodology</a></nav>
+</div></header>
+<main class="wrap">
+<div class="disclaimer" role="note"><strong>Educational only — not a diagnosis, not medical advice.</strong> This page documents how the model was built so its numbers can be checked.</div>
+<section class="section">
+<p class="kicker">HeartRisk / Methodology</p>
+<h1 style="font-size:clamp(34px,5vw,56px)">How the estimate is made</h1>
+<h2 style="margin-top:26px">1 · Data</h2>
+<p>The model was trained on a public Framingham-style dataset: 4,240 rows, 16 columns, target <code>TenYearCHD</code> (did the person develop coronary heart disease within 10 years). Overall prevalence 15.2%. The file used was downloaded from the public GitHub mirror <code>GauravPadawe/Framingham-Heart-Study</code> (<code>framingham.csv</code>, SHA-256 <code>2c0e57dc0361b420becf1facec0a054af06c420eae0ae2faf0fdc8591fadb018</code>), which itself points to the NHLBI Biolincc teaching data and to the Kaggle copy of the Framingham data. Full provenance, including the licence caveat, is in <code>DATA_PROVENANCE.md</code> in the repository.</p>
+<p>Missing values in the source: glucose 388 rows, education 105, BPMeds 53, cigarettes/day 29, BMI 19, heart rate 1. Rows were <strong>not</strong> silently dropped for training; missing values were median-imputed inside the pipeline (see below).</p>
+<h2>2 · Features</h2>
+<p>Fourteen features were used: male, age, currentSmoker, cigsPerDay, BPMeds, prevalentStroke, prevalentHyp, diabetes, totChol, sysBP, diaBP, BMI, heartRate, glucose. <code>education</code> was deliberately dropped — it is not a health input in the simulator, and using it as a predictor would add a social variable with no clinical meaning in this product.</p>
+<h2>3 · Leakage control</h2>
+<ul>
+<li>Stratified 80/20 train/test split, <code>random_state=42</code> (train 3,392 rows, test 848 rows; prevalence 15.2% in both).</li>
+<li>Imputation (median) and scaling (mean/std) live inside an sklearn <code>Pipeline</code>, fitted on the training split only. The test split was used once, for evaluation.</li>
+<li>Stratified 5-fold cross-validation on the training split for the CV ROC-AUC figures.</li>
+<li>Threshold 0.5 was used only for the confusion matrix and F1. The shipped product shows probabilities, not a yes/no label, because a 0.5 threshold on a 15% prevalence outcome is a poor summary.</li>
+</ul>
+<h2>4 · Models compared</h2>
+<p>Logistic regression (median imputation + standard scaling, C = 1.0) versus random forest (median imputation, 300 trees, min_samples_leaf = 2). Both were evaluated identically. Logistic regression was selected: higher test ROC-AUC (0.702 vs 0.646) and CV ROC-AUC (0.732 vs 0.719), exact export as coefficients + scaler, and direct explainability. Random forest would have exported as hundreds of trees with worse test performance.</p>
+<h2>5 · Calibration</h2>
+<p>Sigmoid (Platt) calibration was tried in prototyping and improved the Brier score by only about 0.0004 (0.1213 → 0.1209), so it was <strong>not</strong> shipped — shipping a 5-model calibrated ensemble would have complicated the browser export and parity check for negligible gain. Instead the test-set calibration bins are published in <code>model.json</code> and rendered on the Science section, so any miscalibration is visible: low bins track the observed rate closely; the highest bins are based on very few test cases and are noisy.</p>
+<h2>6 · Browser export and parity</h2>
+<p><code>src/train.py</code> exports the logistic regression as <code>docs/model.json</code>: feature order, training medians, scaler mean/scale, coefficients and intercept. <code>docs/model-core.js</code> implements exactly the same formula (median imputation → scaling → dot product → sigmoid). <code>src/parity.js</code> compares the JavaScript output with sklearn's <code>predict_proba</code> on 30 held-out rows, 3 illustrative profiles and 4 edge cases; the full report is in <code>PARITY.md</code>. Tolerance was 1e-4; the achieved maximum difference was about 1e-16.</p>
+<h2>7 · What-if and top-factor calculations</h2>
+<p>Both are computed by re-running the exported model with one input (or, for smoking, the status + cigarettes pair) changed, everything else held constant. Top factors replace a factor by its reference value (training median, or absent/non-smoker for binary factors) and report the probability difference in percentage points. These are model associations. They are not causal effects, and they do not account for how factors move together in real life.</p>
+<h2>8 · What the model cannot do</h2>
+<ul>
+<li>Distinguish former smokers from never-smokers (the source has no former category).</li>
+<li>Represent populations outside a mid-20th-century Framingham cohort, ages 32–70.</li>
+<li>Use family history, diet, activity, genetics, medication details or any examination finding — none are in the source data.</li>
+<li>Give a personal diagnosis or a safe target for any individual value.</li>
+</ul>
+<h2>9 · Privacy</h2>
+<p>The demo makes no external requests: no fonts, no analytics, no chart library, no backend. Inputs exist only in page memory. The only file fetched is <code>model.json</code> from the same site. There is no account and no persistence of any kind.</p>
+<h2>10 · Reproduce it</h2>
+<p><code>python3 src/train.py</code> retrains both models and rewrites <code>docs/model.json</code> and <code>METRICS.md</code>. <code>node src/parity.js</code> re-checks browser parity. Serve <code>docs/</code> with any static server (<code>python3 -m http.server --directory docs 8000</code>) — opening <code>index.html</code> directly from disk will block the model file fetch in most browsers.</p>
+<div id="metrics"></div>
+</section>
+</main>
+<footer><div class="wrap"><p><strong>HeartRisk — educational only.</strong> Not a diagnosis, not medical advice.</p></div></footer>
+<script src="model-core.js"></script>
+<script>
+fetch("model.json").then(function (r) { return r.json(); }).then(function (m) {
+  var lr = m.metrics.logistic_regression, rf = m.metrics.random_forest;
+  document.getElementById("metrics").innerHTML =
+    "<h2>Metrics (from model.json)</h2><table><thead><tr><th>Model</th><th>Accuracy</th><th>ROC-AUC</th><th>F1 @ 0.5</th><th>Brier</th></tr></thead><tbody>" +
+    "<tr><td>Logistic regression (shipped)</td><td>" + lr.accuracy + "</td><td>" + lr.roc_auc + "</td><td>" + lr["f1_at_0.5"] + "</td><td>" + lr.brier_score + "</td></tr>" +
+    "<tr><td>Random forest (compared)</td><td>" + rf.accuracy + "</td><td>" + rf.roc_auc + "</td><td>" + rf["f1_at_0.5"] + "</td><td>" + rf.brier_score + "</td></tr></tbody></table>";
+});
+</script>
+</body>
+</html>
