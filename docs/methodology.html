@@ -13,6 +13,7 @@
 </div></header>
 <main class="wrap">
 <div class="disclaimer" role="note"><strong>Educational only — not a diagnosis, not medical advice.</strong> This page documents how the model was built so its numbers can be checked.</div>
+<div class="disclaimer" role="note"><strong>Not enough evidence for clinical decisions.</strong> There is not yet enough evidence to trust these individual risk estimates for clinical decisions. That requires stronger calibration evidence and evaluation on an independent, relevant population — neither of which this project has.</div>
 <section class="section">
 <p class="kicker">HeartRisk / Methodology</p>
 <h1 style="font-size:clamp(34px,5vw,56px)">How the estimate is made</h1>
@@ -21,19 +22,21 @@
 <p>Missing values in the source: glucose 388 rows, education 105, BPMeds 53, cigarettes/day 29, BMI 19, heart rate 1. Rows were <strong>not</strong> silently dropped for training; missing values were median-imputed inside the pipeline (see below).</p>
 <h2>2 · Features</h2>
 <p>Fourteen features were used: male, age, currentSmoker, cigsPerDay, BPMeds, prevalentStroke, prevalentHyp, diabetes, totChol, sysBP, diaBP, BMI, heartRate, glucose. <code>education</code> was deliberately dropped — it is not a health input in the simulator, and using it as a predictor would add a social variable with no clinical meaning in this product.</p>
-<h2>3 · Leakage control</h2>
+<h2>3 · Leakage control and held-out design (supersedes the old 80/20 split)</h2>
 <ul>
-<li>Stratified 80/20 train/test split, <code>random_state=42</code> (train 3,392 rows, test 848 rows; prevalence 15.2% in both).</li>
-<li>Imputation (median) and scaling (mean/std) live inside an sklearn <code>Pipeline</code>, fitted on the training split only. The test split was used once, for evaluation.</li>
-<li>Stratified 5-fold cross-validation on the training split for the CV ROC-AUC figures.</li>
-<li>Threshold 0.5 was used only for the confusion matrix and F1. The shipped product shows probabilities, not a yes/no label, because a 0.5 threshold on a 15% prevalence outcome is a poor summary.</li>
+<li>Stratified 60% train / 20% calibration / 20% test, <code>random_state=42</code> (train 2,544 rows, calibration 848 rows, test 848 rows; prevalence ~15.2% in every split). The old 80/20 numbers are superseded and must not be quoted alongside the new ones.</li>
+<li>Imputation (median) and scaling (mean/std) live inside an sklearn <code>Pipeline</code>, fitted on the training split only.</li>
+<li>Hyperparameters were tuned by stratified 5-fold cross-validation on the training split only, scoring ROC-AUC.</li>
+<li>Calibration was fitted on the calibration split only, never on test. The calibration method was chosen by 5-fold cross-fitted evaluation within the calibration split, not by test results. Test was evaluated once, finally, for every candidate and variant.</li>
+<li>Threshold 0.5 was used only for the confusion matrix and F1. The shipped product shows probabilities, not a yes/no label, because a 0.5 threshold on a 15% prevalence outcome is a poor summary (shipped recall at 0.5 is only 5.4%).</li>
 </ul>
-<h2>4 · Models compared</h2>
-<p>Logistic regression (median imputation + standard scaling, C = 1.0) versus random forest (median imputation, 300 trees, min_samples_leaf = 2). Both were evaluated identically. Logistic regression was selected: higher test ROC-AUC (0.702 vs 0.646) and CV ROC-AUC (0.732 vs 0.719), exact export as coefficients + scaler, and direct explainability. Random forest would have exported as hundreds of trees with worse test performance.</p>
-<h2>5 · Calibration</h2>
-<p>Sigmoid (Platt) calibration was tried in prototyping and improved the Brier score by only about 0.0004 (0.1213 → 0.1209), so it was <strong>not</strong> shipped — shipping a 5-model calibrated ensemble would have complicated the browser export and parity check for negligible gain. Instead the test-set calibration bins are published in <code>model.json</code> and rendered on the Science section, so any miscalibration is visible: low bins track the observed rate closely; the highest bins are based on very few test cases and are noisy.</p>
+<h2>4 · Models compared (same splits, same metrics)</h2>
+<p>Regularized logistic regression (C and class_weight tuned by CV), random forest (tuned modestly by CV), HistGradientBoosting (sklearn, tuned modestly by CV; XGBoost was not installed and was not added silently), and an unregularized logistic baseline (C=1e6). The full test table — ROC-AUC, PR-AUC, accuracy, precision, recall, specificity, F1, confusion matrix, Brier, log loss, calibration intercept and slope, for uncalibrated, sigmoid and isotonic variants — is in <code>EVALUATION.md</code> and summarised in the table rendered below from <code>model.json</code>.</p>
+<h2>5 · Calibration — and why a percentage is not automatically trustworthy</h2>
+<p>If 100 people are given a predicted risk of 20%, a calibrated model means about 20 of them should experience the outcome over 10 years, on average, in an appropriate population. It will not be exactly 20 every time; what matters is agreement across the whole range of risks. A model can rank well (ROC-AUC 0.704) and still give untrustworthy percentages — the tuned logistic regression proved it: its raw probabilities had a test Brier score of 0.207 and a calibration intercept of −1.63, because <code>class_weight='balanced'</code> inflates them. Sigmoid (Platt) calibration on the logit scale, fitted on the calibration split only (a=−1.6183, b=0.8737), restored them: test Brier 0.1205, intercept −0.109, slope 0.942. Isotonic calibration was tied on cross-fitted Brier but worse on cross-fitted log loss and unstable on test, so it was not shipped. Calibration intercept/slope here mean a logistic regression of the observed outcome on logit(predicted probability), fitted on test for reporting only; perfect is intercept 0, slope 1. For isotonic step outputs that slope is unstable and is never used alone. The shipped calibration curve is charted below from <code>model.json</code> (decile bins, n≈85 each).</p>
+<div id="calibrationChart"></div>
 <h2>6 · Browser export and parity</h2>
-<p><code>src/train.py</code> exports the logistic regression as <code>docs/model.json</code>: feature order, training medians, scaler mean/scale, coefficients and intercept. <code>docs/model-core.js</code> implements exactly the same formula (median imputation → scaling → dot product → sigmoid). <code>src/parity.js</code> compares the JavaScript output with sklearn's <code>predict_proba</code> on 30 held-out rows, 3 illustrative profiles and 4 edge cases; the full report is in <code>PARITY.md</code>. Tolerance was 1e-4; the achieved maximum difference was about 1e-16.</p>
+<p><code>src/train.py</code> exports the shipped model as <code>docs/model.json</code>: feature order, training medians, scaler mean/scale, coefficients, intercept, and the sigmoid calibration parameters a/b. <code>docs/model-core.js</code> implements exactly the same formula (median imputation → scaling → dot product → sigmoid → sigmoid calibration). <code>src/parity.js</code> compares the JavaScript output with sklearn's calibrated probabilities on 30 held-out rows, 3 illustrative profiles, 4 edge cases and 6 calibration cases (43 total); the full report is in <code>PARITY.md</code>. Tolerance was 1e-4; the achieved maximum difference was about 8e-17.</p>
 <h2>7 · What-if and top-factor calculations</h2>
 <p>Both are computed by re-running the exported model with one input (or, for smoking, the status + cigarettes pair) changed, everything else held constant. Top factors replace a factor by its reference value (training median, or absent/non-smoker for binary factors) and report the probability difference in percentage points. These are model associations. They are not causal effects, and they do not account for how factors move together in real life.</p>
 <h2>8 · What the model cannot do</h2>
@@ -46,7 +49,7 @@
 <h2>9 · Privacy</h2>
 <p>The demo makes no external requests: no fonts, no analytics, no chart library, no backend. Inputs exist only in page memory. The only file fetched is <code>model.json</code> from the same site. There is no account and no persistence of any kind.</p>
 <h2>10 · Reproduce it</h2>
-<p><code>python3 src/train.py</code> retrains both models and rewrites <code>docs/model.json</code> and <code>METRICS.md</code>. <code>node src/parity.js</code> re-checks browser parity. Serve <code>docs/</code> with any static server (<code>python3 -m http.server --directory docs 8000</code>) — opening <code>index.html</code> directly from disk will block the model file fetch in most browsers.</p>
+<p><code>python3 src/train.py</code> retrains and re-evaluates all models and rewrites <code>docs/model.json</code>, <code>METRICS.md</code> and <code>EVALUATION.md</code>. <code>node src/parity.js</code> re-checks browser parity. Serve <code>docs/</code> with any static server (<code>python3 -m http.server --directory docs 8000</code>) — opening <code>index.html</code> directly from disk will block the model file fetch in most browsers.</p>
 <div id="metrics"></div>
 </section>
 </main>
@@ -54,11 +57,31 @@
 <script src="model-core.js"></script>
 <script>
 fetch("model.json").then(function (r) { return r.json(); }).then(function (m) {
-  var lr = m.metrics.logistic_regression, rf = m.metrics.random_forest;
+  function row(name, key) {
+    var x = m.metrics[key].test.sigmoid, c = m.metrics[key];
+    return "<tr><td>" + name + "</td><td>" + x.accuracy + "</td><td>" + x.roc_auc + "</td><td>" + x.pr_auc_average_precision + "</td><td>" + x.precision + "</td><td>" + x.recall_sensitivity + "</td><td>" + x.specificity + "</td><td>" + x["f1_at_0.5"] + "</td><td>" + x.brier_score + "</td><td>" + x.log_loss + "</td><td>" + x.calibration_intercept + " / " + x.calibration_slope + "</td><td>" + c.cv_roc_auc_mean + " ± " + c.cv_roc_auc_std + "</td></tr>";
+  }
   document.getElementById("metrics").innerHTML =
-    "<h2>Metrics (from model.json)</h2><table><thead><tr><th>Model</th><th>Accuracy</th><th>ROC-AUC</th><th>F1 @ 0.5</th><th>Brier</th></tr></thead><tbody>" +
-    "<tr><td>Logistic regression (shipped)</td><td>" + lr.accuracy + "</td><td>" + lr.roc_auc + "</td><td>" + lr["f1_at_0.5"] + "</td><td>" + lr.brier_score + "</td></tr>" +
-    "<tr><td>Random forest (compared)</td><td>" + rf.accuracy + "</td><td>" + rf.roc_auc + "</td><td>" + rf["f1_at_0.5"] + "</td><td>" + rf.brier_score + "</td></tr></tbody></table>";
+    "<h2>Metrics (from model.json, test set, sigmoid-calibrated)</h2><table><thead><tr><th>Model</th><th>Accuracy</th><th>ROC-AUC</th><th>PR-AUC</th><th>Precision</th><th>Recall</th><th>Specificity</th><th>F1 @ 0.5</th><th>Brier</th><th>Log loss</th><th>Cal. intercept / slope</th><th>CV ROC-AUC</th></tr></thead><tbody>" +
+    row("Logistic regression, regularized — shipped", "lr_regularized") +
+    row("Random forest — compared", "random_forest") +
+    row("HistGradientBoosting — compared", "hist_gb") +
+    row("Logistic regression, unregularized baseline", "lr_unregularized_baseline") + "</tbody></table>" +
+    "<p class='small'><strong>Selection:</strong> " + m.selection_reason + "</p>";
+  var bins = m.calibration_bins, W = 320, H = 220, L = 36, B = 26, T = 8, R = 8, iw = W - L - R, ih = H - T - B;
+  function X(v) { return L + v * iw; }
+  function Y(v) { return T + ih - v * ih; }
+  var pts = bins.map(function (b) { return X(b.mean_predicted) + "," + Y(b.observed_rate); }).join(" ");
+  document.getElementById("calibrationChart").innerHTML =
+    "<h3>Figure — calibration curve (shipped model, test set)</h3>" +
+    "<svg viewBox='0 0 " + W + " " + H + "' role='img' aria-label='Calibration curve' style='width:100%;max-width:420px;height:auto;display:block'>" +
+    "<line x1='" + L + "' y1='" + Y(0) + "' x2='" + (W - R) + "' y2='" + Y(0) + "' stroke='#d8cbb2'/>" +
+    "<line x1='" + L + "' y1='" + T + "' x2='" + L + "' y2='" + Y(0) + "' stroke='#d8cbb2'/>" +
+    "<line x1='" + L + "' y1='" + Y(0) + "' x2='" + (W - R) + "' y2='" + T + "' stroke='#9aa0a6' stroke-dasharray='4 4'/>" +
+    "<polyline points='" + pts + "' fill='none' stroke='#b42318' stroke-width='2'/>" +
+    bins.map(function (b) { return "<circle cx='" + X(b.mean_predicted) + "' cy='" + Y(b.observed_rate) + "' r='3.5' fill='#b42318'/>"; }).join("") +
+    "</svg><p class='small'>Dashed line = perfect calibration. Dots = decile bins (n≈85 each). Bins: " +
+    bins.map(function (b) { return b.mean_predicted + " → " + b.observed_rate + " (n=" + b.n + ")"; }).join("; ") + ".</p>";
 });
 </script>
 </body>
