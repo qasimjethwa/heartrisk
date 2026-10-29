@@ -1,0 +1,150 @@
+[
+  {
+    "case": "heldout_0",
+    "python_probability": 0.047408658403876695
+  },
+  {
+    "case": "heldout_1",
+    "python_probability": 0.11162944110867175
+  },
+  {
+    "case": "heldout_2",
+    "python_probability": 0.0373938815702654
+  },
+  {
+    "case": "heldout_3",
+    "python_probability": 0.3734413802933071
+  },
+  {
+    "case": "heldout_4",
+    "python_probability": 0.4120390976198964
+  },
+  {
+    "case": "heldout_5",
+    "python_probability": 0.08974741122937807
+  },
+  {
+    "case": "heldout_6",
+    "python_probability": 0.05323599800604459
+  },
+  {
+    "case": "heldout_7",
+    "python_probability": 0.11652980107778316
+  },
+  {
+    "case": "heldout_8",
+    "python_probability": 0.6533631163064496
+  },
+  {
+    "case": "heldout_9",
+    "python_probability": 0.07392079089549526
+  },
+  {
+    "case": "heldout_10",
+    "python_probability": 0.11032031418206563
+  },
+  {
+    "case": "heldout_11",
+    "python_probability": 0.12347039527540077
+  },
+  {
+    "case": "heldout_12",
+    "python_probability": 0.1703968701817745
+  },
+  {
+    "case": "heldout_13",
+    "python_probability": 0.0792148572313418
+  },
+  {
+    "case": "heldout_14",
+    "python_probability": 0.3943046044440253
+  },
+  {
+    "case": "heldout_15",
+    "python_probability": 0.19041206115045695
+  },
+  {
+    "case": "heldout_16",
+    "python_probability": 0.11628419105947908
+  },
+  {
+    "case": "heldout_17",
+    "python_probability": 0.2716241745452557
+  },
+  {
+    "case": "heldout_18",
+    "python_probability": 0.06798328029784309
+  },
+  {
+    "case": "heldout_19",
+    "python_probability": 0.12339466882228267
+  },
+  {
+    "case": "heldout_20",
+    "python_probability": 0.06131294552008848
+  },
+  {
+    "case": "heldout_21",
+    "python_probability": 0.051429050544152775
+  },
+  {
+    "case": "heldout_22",
+    "python_probability": 0.04407595614481861
+  },
+  {
+    "case": "heldout_23",
+    "python_probability": 0.35323652538129585
+  },
+  {
+    "case": "heldout_24",
+    "python_probability": 0.08445442490739845
+  },
+  {
+    "case": "heldout_25",
+    "python_probability": 0.19853306336660778
+  },
+  {
+    "case": "heldout_26",
+    "python_probability": 0.17691887686522773
+  },
+  {
+    "case": "heldout_27",
+    "python_probability": 0.022775395261964662
+  },
+  {
+    "case": "heldout_28",
+    "python_probability": 0.07779434396449414
+  },
+  {
+    "case": "heldout_29",
+    "python_probability": 0.03613140662392322
+  },
+  {
+    "case": "a_52_smoker",
+    "python_probability": 0.2423961458739231
+  },
+  {
+    "case": "b_48_nonsmoker",
+    "python_probability": 0.05384720195609701
+  },
+  {
+    "case": "c_61_higher",
+    "python_probability": 0.4874964730321224
+  },
+  {
+    "case": "edge_min",
+    "python_probability": 0.0072684755863498115
+  },
+  {
+    "case": "edge_max",
+    "python_probability": 0.9997631076213774
+  },
+  {
+    "case": "edge_all_missing",
+    "python_probability": 0.06943387739586779
+  },
+  {
+    "case": "edge_nonsmoker_with_cigs",
+    "python_probability": 0.08221689337888109
+  }
+]
